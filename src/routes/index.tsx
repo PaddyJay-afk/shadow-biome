@@ -45,10 +45,10 @@ function Home() {
             Rank habitats
           </Link>
           <Link
-            to="/strobe"
+            to="/grid"
             className="inline-flex h-12 items-center rounded-md px-5 text-sm font-medium text-fg shadow-[var(--shadow-border)]"
           >
-            Q-code strobe
+            Zero line / faults / leys
           </Link>
           <Link
             to="/connect"

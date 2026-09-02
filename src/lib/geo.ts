@@ -22,3 +22,28 @@ export function fiberPath(
   const cy = my - dx * bend;
   return `M ${a[0].toFixed(1)} ${a[1].toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${b[0].toFixed(1)} ${b[1].toFixed(1)}`;
 }
+
+export function polylinePath(
+  ring: [number, number][],
+  width: number,
+  height: number,
+): string[] {
+  const parts: string[] = [];
+  let d = "";
+  for (let i = 0; i < ring.length; i++) {
+    const [x, y] = project(ring[i][0], ring[i][1], width, height);
+    if (i === 0) {
+      d = `M ${x.toFixed(1)} ${y.toFixed(1)}`;
+      continue;
+    }
+    const prev = ring[i - 1];
+    if (Math.abs(ring[i][1] - prev[1]) > 180) {
+      if (d) parts.push(d);
+      d = `M ${x.toFixed(1)} ${y.toFixed(1)}`;
+    } else {
+      d += ` L ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }
+  }
+  if (d) parts.push(d);
+  return parts;
+}

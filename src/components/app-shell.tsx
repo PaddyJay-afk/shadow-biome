@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/", label: "Atlas" },
-  { to: "/keepaway", label: "Keep-away" },
+  { to: "/keepaway", label: "Ranges" },
   { to: "/theory", label: "Theory" },
   { to: "/vallee", label: "Vallée" },
+  { to: "/grid", label: "Grid" },
   { to: "/strobe", label: "Strobe" },
   { to: "/locator", label: "Locator" },
   { to: "/missing", label: "Missing" },
@@ -35,7 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link to="/" className="shrink-0">
             <span className="font-display text-xl tracking-tight text-fg">Shadow Biome</span>
           </Link>
-          <nav className="hidden min-w-0 flex-1 items-center justify-end gap-0.5 lg:flex">
+          <nav className="hidden min-w-0 flex-1 items-center justify-end gap-0 overflow-x-auto lg:flex">
             {NAV.map((item) => {
               const on =
                 item.to === "/"
@@ -46,7 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   key={item.to}
                   to={item.to}
                   className={cn(
-                    "shrink-0 rounded-md px-2 py-2 text-sm transition-colors duration-150",
+                    "shrink-0 rounded-md px-1.5 py-2 text-xs transition-colors duration-150",
                     on ? "text-accent" : "text-muted hover:text-fg",
                   )}
                 >

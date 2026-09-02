@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as FieldRouteImport } from './routes/field'
+import { Route as GridRouteImport } from './routes/grid'
 import { Route as KeepawayRouteImport } from './routes/keepaway'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LocatorRouteImport } from './routes/locator'
@@ -19,6 +20,7 @@ import { Route as MissingRouteImport } from './routes/missing'
 import { Route as StrobeRouteImport } from './routes/strobe'
 import { Route as TheoryRouteImport } from './routes/theory'
 import { Route as ValleeRouteImport } from './routes/vallee'
+import { Route as AncientIdRouteImport } from './routes/ancient.$id'
 import { Route as SitesIdRouteImport } from './routes/sites.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -34,6 +36,11 @@ const ConnectRoute = ConnectRouteImport.update({
 const FieldRoute = FieldRouteImport.update({
   id: '/field',
   path: '/field',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GridRoute = GridRouteImport.update({
+  id: '/grid',
+  path: '/grid',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KeepawayRoute = KeepawayRouteImport.update({
@@ -71,6 +78,11 @@ const ValleeRoute = ValleeRouteImport.update({
   path: '/vallee',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AncientIdRoute = AncientIdRouteImport.update({
+  id: '/ancient/$id',
+  path: '/ancient/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitesIdRoute = SitesIdRouteImport.update({
   id: '/sites/$id',
   path: '/sites/$id',
@@ -81,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/connect': typeof ConnectRoute
   '/field': typeof FieldRoute
+  '/grid': typeof GridRoute
   '/keepaway': typeof KeepawayRoute
   '/library': typeof LibraryRoute
   '/locator': typeof LocatorRoute
@@ -88,12 +101,14 @@ export interface FileRoutesByFullPath {
   '/strobe': typeof StrobeRoute
   '/theory': typeof TheoryRoute
   '/vallee': typeof ValleeRoute
+  '/ancient/$id': typeof AncientIdRoute
   '/sites/$id': typeof SitesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/connect': typeof ConnectRoute
   '/field': typeof FieldRoute
+  '/grid': typeof GridRoute
   '/keepaway': typeof KeepawayRoute
   '/library': typeof LibraryRoute
   '/locator': typeof LocatorRoute
@@ -101,6 +116,7 @@ export interface FileRoutesByTo {
   '/strobe': typeof StrobeRoute
   '/theory': typeof TheoryRoute
   '/vallee': typeof ValleeRoute
+  '/ancient/$id': typeof AncientIdRoute
   '/sites/$id': typeof SitesIdRoute
 }
 export interface FileRoutesById {
@@ -108,6 +124,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/connect': typeof ConnectRoute
   '/field': typeof FieldRoute
+  '/grid': typeof GridRoute
   '/keepaway': typeof KeepawayRoute
   '/library': typeof LibraryRoute
   '/locator': typeof LocatorRoute
@@ -115,6 +132,7 @@ export interface FileRoutesById {
   '/strobe': typeof StrobeRoute
   '/theory': typeof TheoryRoute
   '/vallee': typeof ValleeRoute
+  '/ancient/$id': typeof AncientIdRoute
   '/sites/$id': typeof SitesIdRoute
 }
 export interface FileRouteTypes {
@@ -123,6 +141,7 @@ export interface FileRouteTypes {
     | '/'
     | '/connect'
     | '/field'
+    | '/grid'
     | '/keepaway'
     | '/library'
     | '/locator'
@@ -130,12 +149,14 @@ export interface FileRouteTypes {
     | '/strobe'
     | '/theory'
     | '/vallee'
+    | '/ancient/$id'
     | '/sites/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/connect'
     | '/field'
+    | '/grid'
     | '/keepaway'
     | '/library'
     | '/locator'
@@ -143,12 +164,14 @@ export interface FileRouteTypes {
     | '/strobe'
     | '/theory'
     | '/vallee'
+    | '/ancient/$id'
     | '/sites/$id'
   id:
     | '__root__'
     | '/'
     | '/connect'
     | '/field'
+    | '/grid'
     | '/keepaway'
     | '/library'
     | '/locator'
@@ -156,6 +179,7 @@ export interface FileRouteTypes {
     | '/strobe'
     | '/theory'
     | '/vallee'
+    | '/ancient/$id'
     | '/sites/$id'
   fileRoutesById: FileRoutesById
 }
@@ -163,6 +187,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConnectRoute: typeof ConnectRoute
   FieldRoute: typeof FieldRoute
+  GridRoute: typeof GridRoute
   KeepawayRoute: typeof KeepawayRoute
   LibraryRoute: typeof LibraryRoute
   LocatorRoute: typeof LocatorRoute
@@ -170,6 +195,7 @@ export interface RootRouteChildren {
   StrobeRoute: typeof StrobeRoute
   TheoryRoute: typeof TheoryRoute
   ValleeRoute: typeof ValleeRoute
+  AncientIdRoute: typeof AncientIdRoute
   SitesIdRoute: typeof SitesIdRoute
 }
 
@@ -194,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/field'
       fullPath: '/field'
       preLoaderRoute: typeof FieldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/grid': {
+      id: '/grid'
+      path: '/grid'
+      fullPath: '/grid'
+      preLoaderRoute: typeof GridRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/keepaway': {
@@ -245,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ValleeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ancient/$id': {
+      id: '/ancient/$id'
+      path: '/ancient/$id'
+      fullPath: '/ancient/$id'
+      preLoaderRoute: typeof AncientIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sites/$id': {
       id: '/sites/$id'
       path: '/sites/$id'
@@ -259,6 +299,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConnectRoute: ConnectRoute,
   FieldRoute: FieldRoute,
+  GridRoute: GridRoute,
   KeepawayRoute: KeepawayRoute,
   LibraryRoute: LibraryRoute,
   LocatorRoute: LocatorRoute,
@@ -266,6 +307,7 @@ const rootRouteChildren: RootRouteChildren = {
   StrobeRoute: StrobeRoute,
   TheoryRoute: TheoryRoute,
   ValleeRoute: ValleeRoute,
+  AncientIdRoute: AncientIdRoute,
   SitesIdRoute: SitesIdRoute,
 }
 export const routeTree = rootRouteImport
