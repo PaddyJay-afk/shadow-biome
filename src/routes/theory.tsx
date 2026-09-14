@@ -39,6 +39,19 @@ function TheoryPage() {
         ))}
       </ol>
 
+      <article className="mt-10 rounded-xl bg-surface p-5 shadow-[var(--shadow-border)]">
+        <p className="font-mono text-[11px] uppercase tracking-wider text-accent">Working file</p>
+        <h2 className="mt-1 font-display text-2xl text-fg">Jason Sands — memory as keep-away</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted">
+          The red-team intercept is the job. The Quartz Mountain being may be a sincere memory that
+          is not a veridical event. Jay’s stretch: a field around the people who hear the wrong
+          sentence.
+        </p>
+        <Link to="/sands" className="mt-3 inline-flex h-10 items-center text-sm text-accent">
+          Sands dossier
+        </Link>
+      </article>
+
       <h2 className="mt-14 font-display text-3xl text-fg">Schools of occupancy</h2>
       <p className="mt-3 text-sm leading-relaxed text-muted">
         Core models treat the occupants as indigenous or sequestered on Earth. Adjacent models keep
