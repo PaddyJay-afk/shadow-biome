@@ -1,30 +1,30 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #07090c;
-  --color-surface: #10151c;
-  --color-surface-2: #171e27;
-  --color-fg: #e7eef4;
-  --color-muted: #8b9aab;
-  --color-subtle: #5c6b7a;
-  --color-accent: #7ee0f2;
-  --color-accent-fg: #051014;
+  --color-bg: #0a0b0d;
+  --color-surface: #111214;
+  --color-surface-2: #18191c;
+  --color-fg: #ececec;
+  --color-muted: #8a8f98;
+  --color-subtle: #5c616a;
+  --color-accent: #8ad4e0;
+  --color-accent-fg: #061114;
   --color-fiber: #9ff4ff;
-  --color-warn: #e4c48a;
-  --color-danger: #e07a6a;
-  --color-border: rgb(231 238 244 / 10%);
-  --color-ring: #7ee0f2;
+  --color-warn: #d4b47a;
+  --color-danger: #d46a6a;
+  --color-border: rgb(255 255 255 / 8%);
+  --color-ring: #8ad4e0;
 
-  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Instrument Serif", "IBM Plex Serif", ui-serif, Georgia, serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
 
-  --shadow-border: 0 0 0 1px rgb(231 238 244 / 8%);
+  --shadow-border: 0 0 0 1px rgb(255 255 255 / 8%);
 }
 
 @layer base {
@@ -39,16 +39,26 @@
     background: var(--color-bg);
     color: var(--color-fg);
     font-family: var(--font-sans);
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.55;
+    letter-spacing: -0.011em;
   }
 
-  h1,
+  h1 {
+    text-wrap: balance;
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.028em;
+    line-height: 1.12;
+  }
+
   h2,
   h3 {
     text-wrap: balance;
-    font-family: var(--font-display);
-    letter-spacing: -0.03em;
-    line-height: 1.15;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    letter-spacing: -0.022em;
+    line-height: 1.25;
   }
 
   p {
@@ -61,7 +71,7 @@
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--color-accent) 35%, transparent);
+    background: color-mix(in oklab, var(--color-accent) 28%, transparent);
     color: var(--color-fg);
   }
 }

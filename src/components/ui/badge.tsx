@@ -11,15 +11,15 @@ export function Badge({
   children: ReactNode;
 }) {
   const tones = {
-    muted: "text-muted bg-surface-2",
-    accent: "text-accent-fg bg-accent",
-    warn: "text-accent-fg bg-warn",
-    danger: "text-fg bg-danger/20 text-danger",
+    muted: "text-muted border-border",
+    accent: "text-accent border-accent/30",
+    warn: "text-warn border-warn/30",
+    danger: "text-danger border-danger/30",
   };
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center rounded border px-1.5 py-px text-[11px] font-medium",
         tones[tone],
         className,
       )}

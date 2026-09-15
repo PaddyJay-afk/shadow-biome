@@ -17,7 +17,7 @@ export const Route = createRootRoute({
         content:
           "A research atlas of ultraterrestrial habitat, U.S. keep-away ranges, missing-person clusters, and Patrick Jackson’s Sphere Network.",
       },
-      { name: "theme-color", content: "#07090c" },
+      { name: "theme-color", content: "#0a0b0d" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
@@ -26,7 +26,7 @@ export const Route = createRootRoute({
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap",
       },
     ],
   }),

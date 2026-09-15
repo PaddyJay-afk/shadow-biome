@@ -9,17 +9,17 @@ export function SiteCard({ site, score }: { site: Site; score?: number }) {
     <Link
       to="/sites/$id"
       params={{ id: site.id }}
-      className="group flex flex-col rounded-xl bg-surface p-5 shadow-[var(--shadow-border)] transition-[background-color] duration-150 hover:bg-surface-2"
+      className="flex flex-col bg-bg p-5 transition-colors duration-150 hover:bg-surface"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-wider text-subtle">{site.region}</p>
-          <h3 className="mt-1 font-display text-2xl leading-tight text-fg">{site.shortName}</h3>
+          <p className="text-[12px] text-subtle">{site.region}</p>
+          <h3 className="mt-1 text-base font-medium text-fg">{site.shortName}</h3>
         </div>
-        <span className="font-mono text-sm tabular-nums text-accent">{shown}</span>
+        <span className="font-mono text-[13px] tabular-nums text-muted">{shown}</span>
       </div>
-      <p className="mt-3 flex-1 text-sm leading-relaxed text-muted">{site.summary}</p>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <p className="mt-3 flex-1 text-[13px] leading-relaxed text-muted">{site.summary}</p>
+      <div className="mt-4 flex flex-wrap gap-1.5">
         <Badge tone={site.primary ? "accent" : "muted"}>{site.primary ? "Primary" : "Watch"}</Badge>
         <Badge>{ACCESS_LABEL[site.access]}</Badge>
       </div>

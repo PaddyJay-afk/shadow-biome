@@ -10,6 +10,7 @@ const NAV = [
   { to: "/keepaway", label: "Ranges" },
   { to: "/theory", label: "Theory" },
   { to: "/vallee", label: "Vallée" },
+  { to: "/sands", label: "Sands" },
   { to: "/grid", label: "Grid" },
   { to: "/strobe", label: "Strobe" },
   { to: "/locator", label: "Locator" },
@@ -31,12 +32,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         Skip to content
       </a>
-      <header className="sticky top-0 z-40 border-b border-border bg-bg/95">
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4">
+      <header className="sticky top-0 z-40 border-b border-border bg-bg/90 backdrop-blur-md">
+        <div className="mx-auto flex h-12 max-w-6xl items-center gap-6 px-5">
           <Link to="/" className="shrink-0">
-            <span className="font-display text-xl tracking-tight text-fg">Shadow Biome</span>
+            <span className="text-[15px] font-medium tracking-[-0.02em] text-fg">Shadow Biome</span>
           </Link>
-          <nav className="hidden min-w-0 flex-1 items-center justify-end gap-0 overflow-x-auto lg:flex">
+          <nav className="hidden min-w-0 flex-1 items-center justify-end gap-0.5 overflow-x-auto lg:flex">
             {NAV.map((item) => {
               const on =
                 item.to === "/"
@@ -47,8 +48,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                   key={item.to}
                   to={item.to}
                   className={cn(
-                    "shrink-0 rounded-md px-1.5 py-2 text-xs transition-colors duration-150",
-                    on ? "text-accent" : "text-muted hover:text-fg",
+                    "shrink-0 rounded px-2 py-1 text-[13px] transition-colors duration-150",
+                    on ? "text-fg" : "text-muted hover:text-fg",
                   )}
                 >
                   {item.label}
@@ -59,21 +60,21 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Button
             variant="ghost"
             size="icon"
-            className="ml-auto lg:hidden"
+            className="ml-auto size-9 lg:hidden"
             aria-label={open ? "Close menu" : "Open menu"}
             onClick={() => setOpen((v) => !v)}
           >
-            {open ? <X className="size-5" /> : <Menu className="size-5" />}
+            {open ? <X className="size-4" /> : <Menu className="size-4" />}
           </Button>
         </div>
         {open ? (
-          <nav className="grid gap-1 border-t border-border px-3 py-3 lg:hidden">
+          <nav className="grid border-t border-border px-3 py-2 lg:hidden">
             {NAV.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-3 text-sm text-fg hover:bg-surface-2"
+                className="rounded px-3 py-2.5 text-sm text-fg hover:bg-surface-2"
               >
                 {item.label}
               </Link>
