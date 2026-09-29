@@ -15,7 +15,7 @@ function Home() {
   return (
     <main>
       <section className="relative border-b border-border">
-        <NetworkMap className="min-h-[56vh] rounded-none" />
+        <NetworkMap className="h-[72vh] min-h-[520px] rounded-none" />
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-16 md:py-24">
