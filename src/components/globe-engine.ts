@@ -211,6 +211,7 @@ export function mountGlobe(
   onHover: (hit: GlobeHover) => void,
   onPick: (hit: GlobeHover) => void,
 ): GlobeApi {
+  host.replaceChildren();
   const pr = Math.min(window.devicePixelRatio || 1, host.clientWidth < 700 ? 1.5 : 2);
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -241,6 +242,11 @@ export function mountGlobe(
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.35;
   controls.rotateSpeed = 0.55;
+  controls.zoomSpeed = 0.6;
+  controls.touches = {
+    ONE: THREE.TOUCH.ROTATE,
+    TWO: THREE.TOUCH.DOLLY,
+  };
 
   scene.add(new THREE.AmbientLight(0xeef4ff, 0.45));
   const sun = new THREE.DirectionalLight(0xfff6e8, 1.5);
@@ -249,9 +255,10 @@ export function mountGlobe(
 
   const earthMat = new THREE.ShaderMaterial({
     uniforms: { uMap: { value: landTexture() } },
-    transparent: true,
-    depthWrite: false,
-    side: THREE.DoubleSide,
+    transparent: false,
+    depthWrite: true,
+    depthTest: true,
+    side: THREE.FrontSide,
     toneMapped: true,
     vertexShader: `
       varying vec2 vUv;
@@ -271,21 +278,18 @@ export function mountGlobe(
       varying vec3 vNormal;
       varying vec3 vWorld;
       void main() {
-        vec2 uv = gl_FrontFacing ? vUv : vec2(1.0 - vUv.x, vUv.y);
-        vec3 col = texture2D(uMap, uv).rgb;
+        vec3 col = texture2D(uMap, vUv).rgb;
         vec3 n = normalize(vNormal);
         vec3 sunDir = normalize(vec3(0.86, 0.32, 0.4));
         vec3 viewDir = normalize(cameraPosition - vWorld);
         float ndl = clamp(dot(n, sunDir), 0.0, 1.0);
-        col *= 0.55 + 0.5 * ndl;
+        col *= 0.58 + 0.48 * ndl;
         float spec = pow(max(dot(reflect(-sunDir, n), viewDir), 0.0), 48.0);
         float ocean = smoothstep(0.02, 0.2, col.b - max(col.r, col.g * 0.9));
-        col += spec * (0.08 + ocean * 0.55);
-        float fres = pow(1.0 - abs(dot(n, viewDir)), 1.7);
-        col = mix(col, vec3(0.78, 0.92, 1.0), fres * 0.22);
-        float alpha = mix(0.62, 0.4, ocean);
-        alpha *= mix(1.0, 0.78, fres);
-        gl_FragColor = vec4(col, clamp(alpha, 0.28, 0.72));
+        col += spec * (0.05 + ocean * 0.35);
+        float fres = pow(1.0 - abs(dot(n, viewDir)), 2.4);
+        col = mix(col, vec3(0.75, 0.9, 1.0), fres * 0.18);
+        gl_FragColor = vec4(col, 1.0);
       }
     `,
   });

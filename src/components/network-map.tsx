@@ -206,7 +206,7 @@ export function NetworkMap({
             </>
           ) : (
             <p className="text-xs text-muted">
-              Drag to turn it. The shell is glass. Click any mark for pictures and a note.
+              Drag to turn the Earth. One finger turns it. Two fingers zoom. Click a mark for pictures and a note.
             </p>
           )}
         </div>
