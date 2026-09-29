@@ -7,6 +7,7 @@ import { CLUSTERS } from "@/data/missing";
 import { LAYER_META, NODES } from "@/data/network";
 import { listReports } from "@/lib/reports";
 import { cn } from "@/lib/utils";
+import { placeCard } from "@/data/place-card";
 import type { GlobeApi, GlobeHover, GlobeState } from "@/components/globe-engine";
 
 type Overlay = "declination" | "faults" | "leys" | "ancient" | "missing";
@@ -33,6 +34,8 @@ export function NetworkMap({
   const host = useRef<HTMLDivElement>(null);
   const api = useRef<GlobeApi | null>(null);
   const [hover, setHover] = useState<GlobeHover>(null);
+  const [picked, setPicked] = useState<GlobeHover>(null);
+  const [shot, setShot] = useState("");
   const [ready, setReady] = useState(false);
   const [ownLayers, setOwnLayers] = useState<Set<1 | 2 | 3>>(() => new Set([1, 2, 3]));
   const [on, setOn] = useState<Record<Overlay, boolean>>({
@@ -59,13 +62,17 @@ export function NetworkMap({
     if (!el) return;
     let dead = false;
     let dispose = () => {};
-    void import("@/components/globe-engine").then(({ mountGlobe }) => {
+    void import("@/components/globe-engine").then((mod) => {
       if (dead || !host.current) return;
-      const mounted = mountGlobe(
+      const mounted = mod.mountGlobe(
         host.current,
         (hit) => setHover(hit),
         (hit) => {
-          if (hit) onSelect?.(hit.id);
+          if (!hit) return;
+          setPicked(hit);
+          onSelect?.(hit.id);
+          const card = placeCard(hit.kind, hit.id);
+          setShot(card ? mod.placeSnapshot(card.lat, card.lng) : "");
         },
       );
       api.current = mounted;
@@ -121,32 +128,16 @@ export function NetworkMap({
     ? NODES.find((n) => n.id === selectedId || n.siteId === selectedId)
     : null;
 
-  let tip: { kicker: string; name: string; to?: "/sites/$id" | "/ancient/$id"; id?: string } | null =
-    null;
-  if (hoverAncient)
-    tip = {
-      kicker: `ancient · D ${hoverAncient.declination >= 0 ? "+" : ""}${hoverAncient.declination.toFixed(1)}°`,
-      name: hoverAncient.name,
-      to: "/ancient/$id",
-      id: hoverAncient.id,
-    };
-  else if (hoverFault) tip = { kicker: hoverFault.kind, name: hoverFault.name };
-  else if (hoverLey) tip = { kicker: "ley", name: hoverLey.name };
-  else if (hoverMissing) tip = { kicker: "missing", name: hoverMissing.name };
-  else if (hoverNode)
-    tip = {
-      kicker: hoverNode.kind.replace("-", " "),
-      name: hoverNode.name,
-      to: hoverNode.siteId ? "/sites/$id" : undefined,
-      id: hoverNode.siteId,
-    };
-  else if (selected)
-    tip = {
-      kicker: selected.kind.replace("-", " "),
-      name: selected.name,
-      to: selected.siteId ? "/sites/$id" : undefined,
-      id: selected.siteId,
-    };
+  const card = picked ? placeCard(picked.kind, picked.id) : null;
+
+  let tip: { kicker: string; name: string } | null = null;
+  if (!card && hoverAncient) tip = { kicker: "ancient", name: hoverAncient.name };
+  else if (!card && hoverFault) tip = { kicker: hoverFault.kind, name: hoverFault.name };
+  else if (!card && hoverLey) tip = { kicker: "ley", name: hoverLey.name };
+  else if (!card && hoverMissing) tip = { kicker: "missing", name: hoverMissing.name };
+  else if (!card && hoverNode) tip = { kicker: hoverNode.kind.replace("-", " "), name: hoverNode.name };
+  else if (!card && selected)
+    tip = { kicker: selected.kind.replace("-", " "), name: selected.name };
 
   return (
     <div className={cn("relative overflow-hidden bg-bg", className)}>
@@ -154,7 +145,7 @@ export function NetworkMap({
         ref={host}
         className="absolute inset-0"
         role="img"
-        aria-label="Three-dimensional globe of the Sphere Network, declination, faults, leys, and ancient sites"
+        aria-label="Glass globe of the Earth with the Sphere Network. Click a place for pictures and a description."
       />
       {!ready ? (
         <p className="pointer-events-none absolute left-4 top-14 text-xs text-muted">Drawing globe…</p>
@@ -207,36 +198,64 @@ export function NetworkMap({
       </div>
 
       <div className="absolute bottom-3 left-3 right-3 z-10 flex flex-wrap items-end justify-between gap-3">
-        <div className="pointer-events-none max-w-sm rounded-lg bg-surface/80 px-3 py-2 shadow-[var(--shadow-border)] backdrop-blur-md">
+        <div className="pointer-events-none max-w-sm rounded-md bg-surface/85 px-3 py-2 shadow-[var(--shadow-border)] backdrop-blur-md">
           {tip ? (
             <>
               <p className="font-mono text-[10px] uppercase tracking-wider text-subtle">{tip.kicker}</p>
-              <p className="text-lg font-medium leading-tight text-fg">{tip.name}</p>
+              <p className="text-sm font-medium leading-tight text-fg">{tip.name}</p>
             </>
           ) : (
             <p className="text-xs text-muted">
-              Drag to orbit. Cyan fibers glow. Red-orange faults, gold leys, pale agonic line. Land stays dark.
+              Drag to turn it. The shell is glass. Click any mark for pictures and a note.
             </p>
           )}
         </div>
-        {tip?.to === "/ancient/$id" && tip.id ? (
-          <Link
-            to="/ancient/$id"
-            params={{ id: tip.id }}
-            className="pointer-events-auto inline-flex h-11 items-center rounded-md bg-cta px-4 text-sm font-medium text-cta-fg"
-          >
-            Open dossier
-          </Link>
-        ) : tip?.to === "/sites/$id" && tip.id ? (
-          <Link
-            to="/sites/$id"
-            params={{ id: tip.id }}
-            className="pointer-events-auto inline-flex h-11 items-center rounded-md bg-cta px-4 text-sm font-medium text-cta-fg"
-          >
-            Open dossier
-          </Link>
-        ) : null}
       </div>
+
+      {card ? (
+        <aside className="absolute bottom-3 right-3 top-14 z-20 flex w-[min(24rem,calc(100%-1.5rem))] flex-col overflow-hidden rounded-md bg-surface/95 shadow-[var(--shadow-border)] backdrop-blur-md max-md:left-3 max-md:top-auto max-md:max-h-[58%]">
+          <div className="flex items-start justify-between gap-3 px-3 py-2">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-subtle">{card.kicker}</p>
+            <button
+              type="button"
+              onClick={() => setPicked(null)}
+              className="text-xs text-muted"
+            >
+              Close
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-1 px-3">
+            {shot ? (
+              <img src={shot} alt={`Map view centered on ${card.title}`} className="col-span-2 h-28 w-full rounded-sm object-cover" />
+            ) : null}
+            {card.images.slice(0, shot ? 1 : 3).map((img) => (
+              <img key={img.src + img.alt} src={img.src} alt={img.alt} className="h-28 w-full rounded-sm object-cover" />
+            ))}
+          </div>
+          {card.images.length > 1 ? (
+            <div className="mt-1 grid grid-cols-2 gap-1 px-3">
+              {card.images.slice(shot ? 1 : 3, shot ? 3 : 5).map((img) => (
+                <img key={img.src + img.alt} src={img.src} alt={img.alt} className="h-24 w-full rounded-sm object-cover" />
+              ))}
+            </div>
+          ) : null}
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+            <h2 className="text-lg text-fg">{card.title}</h2>
+            <p className="mt-2 text-[13px] leading-relaxed text-muted">{card.text}</p>
+          </div>
+          {card.link ? (
+            <div className="px-3 py-3">
+              <Link
+                to={card.link.to}
+                params={{ id: card.link.id }}
+                className="inline-flex h-9 items-center rounded-md bg-accent px-3 text-[13px] font-medium text-accent-fg"
+              >
+                Open the full file
+              </Link>
+            </div>
+          ) : null}
+        </aside>
+      ) : null}
     </div>
   );
 }

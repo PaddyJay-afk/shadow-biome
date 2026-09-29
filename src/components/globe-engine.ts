@@ -7,6 +7,7 @@ import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { Timer } from "three/addons/misc/Timer.js";
 import { ANCIENT } from "@/data/ancient";
 import { CONTINENTS } from "@/data/continents";
+import { PEAKS, paintEarth } from "@/components/earth-paint";
 import { FAULTS } from "@/data/faults";
 import { ISOGONICS } from "@/data/isogonics";
 import { GRID_MERIDIANS, GRID_PARALLELS, LEYS } from "@/data/leys";
@@ -55,7 +56,12 @@ function splitLng(path: [number, number][]): [number, number][][] {
   return out;
 }
 
-function flowMaterial(color: string, speed = 0.12, gain = 1): THREE.ShaderMaterial {
+function flowMaterial(
+  color: string,
+  speed = 0.12,
+  gain = 1,
+  additive = true,
+): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
@@ -86,43 +92,53 @@ function flowMaterial(color: string, speed = 0.12, gain = 1): THREE.ShaderMateri
       }
     `,
     transparent: true,
-    blending: THREE.AdditiveBlending,
+    blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
     depthWrite: false,
     toneMapped: false,
   });
 }
 
-function landTexture(): THREE.CanvasTexture {
-  const w = 2048;
-  const h = 1024;
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("canvas");
-  ctx.fillStyle = "#050607";
-  ctx.fillRect(0, 0, w, h);
-  const g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, "#0a0908");
-  g.addColorStop(0.5, "#070605");
-  g.addColorStop(1, "#0a0908");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = "#1a140f";
-  ctx.strokeStyle = "#2a211b";
-  ctx.lineWidth = 1.5;
-  for (const c of CONTINENTS) {
-    ctx.beginPath();
-    c.ring.forEach(([lng, lat], i) => {
-      const x = ((lng + 180) / 360) * w;
-      const y = ((90 - lat) / 180) * h;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+let earthCanvas: HTMLCanvasElement | null = null;
+
+export function placeSnapshot(lat: number, lng: number): string {
+  const src = earthCanvas;
+  if (!src) return "";
+  const out = document.createElement("canvas");
+  out.width = 720;
+  out.height = 420;
+  const ctx = out.getContext("2d");
+  if (!ctx) return "";
+  const w = src.width;
+  const h = src.height;
+  const cx = ((lng + 180) / 360) * w;
+  const cy = ((90 - lat) / 180) * h;
+  const sw = w * 0.08;
+  const sh = h * 0.11;
+  const sy = Math.max(0, Math.min(h - sh, cy - sh / 2));
+  const sx = cx - sw / 2;
+  const blit = (fromX: number, destX: number, sliceW: number) => {
+    if (sliceW <= 0) return;
+    ctx.drawImage(src, fromX, sy, sliceW, sh, destX, 0, (sliceW / sw) * out.width, out.height);
+  };
+  if (sx < 0) {
+    blit(w + sx, 0, -sx);
+    blit(0, (-sx / sw) * out.width, sw + sx);
+  } else if (sx + sw > w) {
+    const left = w - sx;
+    blit(sx, 0, left);
+    blit(0, (left / sw) * out.width, sw - left);
+  } else {
+    ctx.drawImage(src, sx, sy, sw, sh, 0, 0, out.width, out.height);
   }
+  ctx.strokeStyle = "rgba(255,255,255,0.85)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(out.width / 2 - 7, out.height / 2 - 7, 14, 14);
+  return out.toDataURL("image/jpeg", 0.84);
+}
+
+function landTexture(): THREE.CanvasTexture {
+  const canvas = paintEarth(CONTINENTS);
+  earthCanvas = canvas;
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
@@ -202,7 +218,7 @@ export function mountGlobe(
     powerPreference: "high-performance",
   });
   renderer.setPixelRatio(pr);
-  renderer.setClearColor(0x050607, 1);
+  renderer.setClearColor(0x071018, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -226,11 +242,94 @@ export function mountGlobe(
   controls.autoRotateSpeed = 0.35;
   controls.rotateSpeed = 0.55;
 
-  const earth = new THREE.Mesh(
-    new THREE.SphereGeometry(R, 128, 96),
-    new THREE.MeshBasicMaterial({ map: landTexture(), color: 0xffffff }),
-  );
+  scene.add(new THREE.AmbientLight(0xeef4ff, 0.45));
+  const sun = new THREE.DirectionalLight(0xfff6e8, 1.5);
+  sun.position.set(5, 2.2, 3.4);
+  scene.add(sun);
+
+  const earthMat = new THREE.ShaderMaterial({
+    uniforms: { uMap: { value: landTexture() } },
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    toneMapped: true,
+    vertexShader: `
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vWorld;
+      void main() {
+        vUv = uv;
+        vec4 w = modelMatrix * vec4(position, 1.0);
+        vWorld = w.xyz;
+        vNormal = normalize(mat3(modelMatrix) * normal);
+        gl_Position = projectionMatrix * viewMatrix * w;
+      }
+    `,
+    fragmentShader: `
+      uniform sampler2D uMap;
+      varying vec2 vUv;
+      varying vec3 vNormal;
+      varying vec3 vWorld;
+      void main() {
+        vec2 uv = gl_FrontFacing ? vUv : vec2(1.0 - vUv.x, vUv.y);
+        vec3 col = texture2D(uMap, uv).rgb;
+        vec3 n = normalize(vNormal);
+        vec3 sunDir = normalize(vec3(0.86, 0.32, 0.4));
+        vec3 viewDir = normalize(cameraPosition - vWorld);
+        float ndl = clamp(dot(n, sunDir), 0.0, 1.0);
+        col *= 0.55 + 0.5 * ndl;
+        float spec = pow(max(dot(reflect(-sunDir, n), viewDir), 0.0), 48.0);
+        float ocean = smoothstep(0.02, 0.2, col.b - max(col.r, col.g * 0.9));
+        col += spec * (0.08 + ocean * 0.55);
+        float fres = pow(1.0 - abs(dot(n, viewDir)), 1.7);
+        col = mix(col, vec3(0.78, 0.92, 1.0), fres * 0.22);
+        float alpha = mix(0.62, 0.4, ocean);
+        alpha *= mix(1.0, 0.78, fres);
+        gl_FragColor = vec4(col, clamp(alpha, 0.28, 0.72));
+      }
+    `,
+  });
+  const earth = new THREE.Mesh(new THREE.SphereGeometry(R, 160, 120), earthMat);
+  earth.renderOrder = 1;
   scene.add(earth);
+
+  const rockMat = new THREE.MeshStandardMaterial({
+    color: 0x7a5644,
+    roughness: 0.94,
+    metalness: 0,
+  });
+  const rustMat = new THREE.MeshStandardMaterial({
+    color: 0x8d4c32,
+    roughness: 0.9,
+    metalness: 0,
+  });
+  const snowMat = new THREE.MeshStandardMaterial({
+    color: 0xf3f6f8,
+    roughness: 0.62,
+    metalness: 0,
+  });
+  const peaks = new THREE.Group();
+  peaks.renderOrder = 2;
+  for (const peak of PEAKS) {
+    const nrm = ll(peak.lat, peak.lng, 1).normalize();
+    const body = new THREE.Mesh(
+      new THREE.ConeGeometry(0.016 + peak.h * 0.22, peak.h * 1.15, 7),
+      peak.snow ? rockMat : rustMat,
+    );
+    body.position.copy(nrm.clone().multiplyScalar(R + peak.h * 0.42));
+    body.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), nrm);
+    peaks.add(body);
+    if (peak.snow) {
+      const cap = new THREE.Mesh(
+        new THREE.ConeGeometry(0.006 + peak.h * 0.08, peak.h * 0.38, 5),
+        snowMat,
+      );
+      cap.position.copy(nrm.clone().multiplyScalar(R + peak.h * 0.78));
+      cap.quaternion.copy(body.quaternion);
+      peaks.add(cap);
+    }
+  }
+  scene.add(peaks);
 
   const atmos = new THREE.Mesh(
     new THREE.SphereGeometry(R * 1.075, 96, 64),
@@ -245,10 +344,9 @@ export function mountGlobe(
       fragmentShader: `
         varying vec3 vNormal;
         void main() {
-          float f = pow(0.62 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
-          vec3 deep = vec3(0.05, 0.28, 0.38);
-          vec3 hot = vec3(0.62, 0.96, 1.0);
-          gl_FragColor = vec4(mix(deep, hot, clamp(f, 0.0, 1.0)), clamp(f, 0.0, 1.0));
+          float f = pow(0.78 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 3.2);
+          vec3 air = vec3(0.55, 0.82, 1.0);
+          gl_FragColor = vec4(air, clamp(f, 0.0, 1.0) * 0.42);
         }
       `,
       transparent: true,
@@ -284,19 +382,19 @@ export function mountGlobe(
   );
 
   const times: { value: number }[] = [];
-  const fiberMat = (color: string, speed: number, gain = 1) => {
-    const m = flowMaterial(color, speed, gain);
+  const fiberMat = (color: string, speed: number, gain = 1, additive = true) => {
+    const m = flowMaterial(color, speed, gain, additive);
     times.push(m.uniforms.uTime);
     return m;
   };
-  const m1 = fiberMat("#b8fbff", 0.16);
-  const m1h = fiberMat("#7ee8ff", 0.16, 0.28);
-  const m2 = fiberMat("#8ad4ff", 0.22);
-  const m2h = fiberMat("#5eb8ff", 0.22, 0.26);
-  const m3 = fiberMat("#e4d4ff", 0.3);
-  const m3h = fiberMat("#c4b0ff", 0.3, 0.24);
-  const mFault = fiberMat("#ff6a3a", 0.08);
-  const mLey = fiberMat("#f0c56a", 0.06);
+  const m1 = fiberMat("#d9fbff", 0.16, 1.15, false);
+  const m1h = fiberMat("#7ee8ff", 0.16, 0.22, true);
+  const m2 = fiberMat("#8fd4ff", 0.22, 1.05, false);
+  const m2h = fiberMat("#5eb8ff", 0.22, 0.18, true);
+  const m3 = fiberMat("#efe4ff", 0.3, 1.05, false);
+  const m3h = fiberMat("#c4b0ff", 0.3, 0.16, true);
+  const mFault = fiberMat("#ff5a32", 0.08, 1.1, false);
+  const mLey = fiberMat("#e8b15a", 0.06, 1.05, false);
   const mIso = new THREE.LineBasicMaterial({
     color: 0x7ee8ff,
     transparent: true,
@@ -416,7 +514,13 @@ export function mountGlobe(
     const mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.012, 0), ancientMat);
     mesh.position.copy(ll(site.lat, site.lng, R + 0.014));
     mesh.userData = { kind: "a" as PickKind, id: site.id };
-    gAncient.add(mesh);
+    const pick = new THREE.Mesh(
+      new THREE.SphereGeometry(0.05, 8, 8),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
+    );
+    pick.position.copy(mesh.position);
+    pick.userData = { kind: "a" as PickKind, id: site.id };
+    gAncient.add(mesh, pick);
   }
 
   const missMat = new THREE.MeshBasicMaterial({
@@ -431,7 +535,13 @@ export function mountGlobe(
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.016, 16, 12), missMat);
     mesh.position.copy(ll(c.lat, c.lng, R + 0.018));
     mesh.userData = { kind: "m" as PickKind, id: c.id };
-    gMissing.add(mesh);
+    const pick = new THREE.Mesh(
+      new THREE.SphereGeometry(0.05, 8, 8),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
+    );
+    pick.position.copy(mesh.position);
+    pick.userData = { kind: "m" as PickKind, id: c.id };
+    gMissing.add(mesh, pick);
   }
 
   const nodeColors: Record<string, number> = {
@@ -452,6 +562,12 @@ export function mountGlobe(
     );
     mesh.position.copy(ll(n.lat, n.lng, R + 0.02));
     mesh.userData = { kind: "n" as PickKind, id: n.id };
+    const pick = new THREE.Mesh(
+      new THREE.SphereGeometry(n.kind === "keepaway" ? 0.055 : 0.042, 8, 8),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
+    );
+    pick.position.copy(mesh.position);
+    pick.userData = { kind: "n" as PickKind, id: n.id };
     const halo = new THREE.Mesh(
       new THREE.SphereGeometry(n.kind === "keepaway" ? 0.034 : 0.02, 12, 10),
       new THREE.MeshBasicMaterial({
@@ -464,7 +580,7 @@ export function mountGlobe(
       }),
     );
     halo.position.copy(mesh.position);
-    gNodes.add(halo, mesh);
+    gNodes.add(halo, mesh, pick);
     nodeRecs.push({ mesh, halo, kind: n.kind, id: n.id, siteId: n.siteId });
   }
 
@@ -490,9 +606,9 @@ export function mountGlobe(
   composer.addPass(new RenderPass(scene, camera));
   const bloom = new UnrealBloomPass(
     new THREE.Vector2(host.clientWidth, host.clientHeight),
-    host.clientWidth < 700 ? 1.05 : 1.35,
-    0.78,
-    0.12,
+    host.clientWidth < 700 ? 0.42 : 0.55,
+    0.42,
+    0.72,
   );
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
