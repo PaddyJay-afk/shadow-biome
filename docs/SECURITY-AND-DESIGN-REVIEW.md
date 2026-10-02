@@ -6,6 +6,7 @@ Reviewed 2026-10-02 against main commit `3b3acd6b385c67936afb52b658d527c0830af67
 
 | Finding | Exposure and severity | Change |
 | --- | --- | --- |
+| TanStack Start reflected XSS (CVE-2026-102989) | Critical upstream server-function response vulnerability. Vercel blocked the locked React Start 1.168.49 before building; the original production deployment also predates the patch. An earlier zero-result npm audit did not detect this advisory. | Upgraded React Start to 1.168.60 and verified resolved start-server-core 1.169.39 or later, following the [official advisory](https://tanstack.com/blog/tanstack-start-security-update-cve-2026-102989). No deployment-security bypass was enabled. |
 | Vulnerable `brace-expansion` dependency versions | npm classified one dependency as high severity for CPU/stack exhaustion. It is in development tooling; no remotely reachable production exploit was demonstrated. | Patched to 1.1.21 and 5.0.12. Full and production-only audits now report zero known advisories. |
 | No content security, MIME, referrer, or capability policy | Browser hardening gap, not proof of a compromise. | Added CSP, `nosniff`, referrer policy, and permissions policy in both Vercel config and SSR middleware. Preserved Grok branding and preview integration. |
 | Saved reports trusted arbitrary JSON | Malformed browser-local records could crash rendering or supply invalid map coordinates. This requires control of local storage; it is not an unauthenticated server endpoint. | Validate records with Zod, strip unknown fields, constrain coordinates and lengths, ignore malformed records, cap total data. |
@@ -63,6 +64,19 @@ sandbox proxy certificate is not trusted by Chromium. Application assets, Three.
 SSR, hydration, and application behavior are real. Live deployment inspection is
 separate. Browser emulation does not establish frame rate or battery usage on a
 physical iPhone.
+
+After installing the TanStack security patch, the production build, type check,
+three security tests, clean `npm ci`, dependency audit, and production atlas suite
+at all five widths passed again. The framework update changed the error prop to
+`unknown`; the error page now safely handles Error objects and string messages.
+
+PR #1 was merged as `f8e9a3a70157af77c150f6a779da34e7f0176bcf`.
+Vercel marked deployment `ZoK3yoapzUXEpnVeQNQzSWfowPuQ` Ready and Current for
+Production, with `https://shadow-biome.vercel.app/` assigned. The live page was
+opened and its HTTP 200 response and CSP, MIME, referrer, permissions, and HSTS
+headers verified. This cloud browser has WebGL disabled; the deployed 2D fallback
+and site selection worked there. The Three.js renderer was verified separately
+against the patched local production build, not on a physical phone.
 
 The repository-wide `npm test` includes Grok platform fixture tests referencing
 ignored `.grok/skills` and `.grok/app-env.json` files that were not exported to
