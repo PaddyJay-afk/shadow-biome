@@ -1,0 +1,62 @@
+[
+  {
+    "port": "8080",
+    "width": 320,
+    "status": 200,
+    "errors": []
+  },
+  {
+    "port": "8080",
+    "width": 390,
+    "status": 200,
+    "errors": []
+  },
+  {
+    "port": "8080",
+    "width": 768,
+    "status": 200,
+    "errors": []
+  },
+  {
+    "port": "8080",
+    "width": 1024,
+    "status": 200,
+    "errors": []
+  },
+  {
+    "port": "8080",
+    "width": 1440,
+    "status": 200,
+    "errors": []
+  },
+  {
+    "port": "8081",
+    "width": 320,
+    "status": 200,
+    "errors": []
+  },
+  {
+    "port": "8081",
+    "width": 390,
+    "status": 200,
+    "errors": []
+  },
+  {
+    "port": "8081",
+    "width": 768,
+    "status": 200,
+    "errors": []
+  },
+  {
+    "port": "8081",
+    "width": 1024,
+    "status": 200,
+    "errors": []
+  },
+  {
+    "port": "8081",
+    "width": 1440,
+    "status": 200,
+    "errors": []
+  }
+]
