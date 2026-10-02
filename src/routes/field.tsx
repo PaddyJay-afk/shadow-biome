@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { SITES } from "@/data/sites";
 import { addReport, listReports, removeReport, type FieldReport } from "@/lib/reports";
@@ -8,7 +8,7 @@ export const Route = createFileRoute("/field")({ component: FieldPage });
 
 function FieldPage() {
   const [tick, setTick] = useState(0);
-  const reports = useMemo(() => listReports(), [tick]);
+  const reports = useMemo(() => (tick === 0 ? [] : listReports()), [tick]);
   const [kind, setKind] = useState<FieldReport["kind"]>("sphere");
   const [siteId, setSiteId] = useState("");
   const [place, setPlace] = useState("");
@@ -16,6 +16,10 @@ function FieldPage() {
   const [notes, setNotes] = useState("");
   const [photo, setPhoto] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setTick((n) => n + 1);
+  }, []);
 
   function pickSite(id: string) {
     setSiteId(id);
@@ -28,11 +32,19 @@ function FieldPage() {
       setPhoto(undefined);
       return;
     }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setPhoto(undefined);
+      setError("Use a JPEG, PNG, or WebP still.");
+      return;
+    }
     if (file.size > 1_200_000) {
+      setPhoto(undefined);
       setError("Keep stills under about 1 MB.");
       return;
     }
+    setError(null);
     const reader = new FileReader();
+    reader.onerror = () => setError("The still could not be read. Try another file.");
     reader.onload = () => setPhoto(String(reader.result));
     reader.readAsDataURL(file);
   }
@@ -45,20 +57,24 @@ function FieldPage() {
       return;
     }
     const site = SITES.find((s) => s.id === siteId);
-    addReport({
-      place: place.trim(),
-      siteId: site?.id,
-      lat: site?.lat,
-      lng: site?.lng,
-      date: date || new Date().toISOString().slice(0, 10),
-      kind,
-      notes: notes.trim(),
-      photoDataUrl: photo,
-    });
-    setPlace("");
-    setNotes("");
-    setPhoto(undefined);
-    setTick((n) => n + 1);
+    try {
+      addReport({
+        place: place.trim(),
+        siteId: site?.id,
+        lat: site?.lat,
+        lng: site?.lng,
+        date: date || new Date().toISOString().slice(0, 10),
+        kind,
+        notes: notes.trim(),
+        photoDataUrl: photo,
+      });
+      setPlace("");
+      setNotes("");
+      setPhoto(undefined);
+      setTick((n) => n + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "The note could not be saved.");
+    }
   }
 
   return (
@@ -70,7 +86,10 @@ function FieldPage() {
         note to an atlas site and it plots as a cyan diamond on the world map. Public land only.
       </p>
 
-      <form onSubmit={submit} className="mt-8 grid gap-4 rounded-xl bg-surface p-5 shadow-[var(--shadow-border)]">
+      <form
+        onSubmit={submit}
+        className="mt-8 grid gap-4 rounded-xl bg-surface p-5 shadow-[var(--shadow-border)]"
+      >
         <label className="grid gap-1 text-sm">
           <span className="text-muted">Atlas pin (optional — plots on the map)</span>
           <select
@@ -89,6 +108,8 @@ function FieldPage() {
         <label className="grid gap-1 text-sm">
           <span className="text-muted">Place (public land, range-adjacent town, park)</span>
           <input
+            maxLength={200}
+            required
             value={place}
             onChange={(e) => setPlace(e.target.value)}
             className="h-11 rounded-md bg-bg px-3 text-fg shadow-[var(--shadow-border)] outline-none focus:ring-2 focus:ring-ring/70"
@@ -121,6 +142,8 @@ function FieldPage() {
         <label className="grid gap-1 text-sm">
           <span className="text-muted">Notes</span>
           <textarea
+            maxLength={12000}
+            required
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={5}
@@ -131,12 +154,16 @@ function FieldPage() {
           <span className="text-muted">Still (optional)</span>
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             onChange={(e) => onFile(e.target.files?.[0])}
             className="text-sm text-muted file:mr-3 file:h-11 file:rounded-md file:border-0 file:bg-surface-2 file:px-3 file:text-fg"
           />
         </label>
-        {error ? <p className="text-sm text-danger">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        ) : null}
         <Button type="submit">Save in this browser</Button>
       </form>
 
@@ -166,16 +193,24 @@ function FieldPage() {
                 </div>
                 <button
                   type="button"
-                  className="text-sm text-muted hover:text-danger"
+                  className="min-h-11 px-3 text-sm text-muted hover:text-danger"
                   onClick={() => {
-                    removeReport(r.id);
-                    setTick((n) => n + 1);
+                    try {
+                      removeReport(r.id);
+                      setTick((n) => n + 1);
+                    } catch (err) {
+                      setError(
+                        err instanceof Error ? err.message : "The note could not be removed.",
+                      );
+                    }
                   }}
                 >
                   Remove
                 </button>
               </div>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted">{r.notes}</p>
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted">
+                {r.notes}
+              </p>
               {r.photoDataUrl ? (
                 <img
                   src={r.photoDataUrl}

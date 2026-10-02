@@ -4,7 +4,7 @@ set -eu
 if curl -sf -o /dev/null --max-time 2 http://127.0.0.1:8080/; then
   exit 0
 fi
-cd /workspace
+cd "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 npm run dev > /tmp/shadow-biome-dev.log 2>&1 &
 # Wait until the port answers so revive is not a race.
 i=0

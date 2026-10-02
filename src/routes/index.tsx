@@ -3,31 +3,58 @@ import { NetworkMap } from "@/components/network-map";
 import { SiteCard } from "@/components/site-card";
 import { Disclaimer } from "@/components/disclaimer";
 import { PRIMARY_SITES, WATCH_SITES, overallScore } from "@/data/sites";
+import { NODES, FIBERS } from "@/data/network";
 import { SPHERE_TYPES } from "@/data/theory";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
-  const ranked = [...PRIMARY_SITES].sort(
-    (a, b) => overallScore(b.scores) - overallScore(a.scores),
-  );
+  const ranked = [...PRIMARY_SITES].sort((a, b) => overallScore(b.scores) - overallScore(a.scores));
 
   return (
     <main>
-      <section className="relative border-b border-border">
-        <NetworkMap className="min-h-[56vh] rounded-none" />
+      <section className="mission-hero">
+        <div className="mission-heading">
+          <div>
+            <p className="mission-kicker">SHADOW BIOME / RESEARCH ATLAS</p>
+            <h1>
+              One planet.
+              <br />
+              <span>A deeper perspective.</span>
+            </h1>
+          </div>
+          <div className="mission-summary">
+            Explore the geography behind the ultraterrestrial hypothesis. Restricted ranges, ancient
+            places, and proposed connections in one interactive Earth.
+            <Link to="/library">
+              Examine the sources <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
+        </div>
+        <NetworkMap />
+        <div className="mission-metrics">
+          <span>
+            <b>{NODES.length.toString().padStart(2, "0")}</b> RESEARCH NODES
+          </span>
+          <span>
+            <b>{FIBERS.length}</b> PROPOSED CONNECTIONS
+          </span>
+          <span>
+            <b>07</b> PRIMARY RANGES
+          </span>
+        </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-16 md:py-24">
         <p className="text-[13px] text-muted">Research atlas</p>
-        <h1 className="mt-4 max-w-3xl text-[2.5rem] text-fg md:text-[3.5rem]">
-          An older civilization, still here, under the locked ground.
-        </h1>
+        <h2 className="mt-4 max-w-3xl font-display text-[2.5rem] text-fg md:text-[3.5rem]">
+          Could an older civilization share our planet?
+        </h2>
         <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-muted">
-          A working map of Patrick Jackson’s Sphere Network on American keep-away land: ranges
-          you cannot enter without an official reason, mineral inventories that sit unworked,
-          missing-person rates that do not match the rest of the country. Vallée’s case against
-          the star-visitor story is the floor.
+          A working map of Patrick Jackson’s Sphere Network on American keep-away land: ranges you
+          cannot enter without an official reason, mineral inventories that sit unworked,
+          missing-person rates that do not match the rest of the country. Vallée’s case against the
+          star-visitor story is the floor.
         </p>
         <div className="mt-8 flex flex-wrap gap-2">
           <Link
@@ -62,13 +89,15 @@ function Home() {
           <img
             src="/art/cavern.jpg"
             alt="Underground basalt cavern with cyan fiber-like veins of light"
+            loading="lazy"
+            decoding="async"
             className="aspect-[16/10] w-full rounded-md object-cover"
           />
           <div>
             <p className="text-[13px] text-muted">Operators</p>
             <h2 className="mt-2 text-2xl text-fg">Jackson’s model</h2>
             <p className="mt-3 text-[15px] leading-relaxed text-muted">
-              Not visitors. A crustal species with large eyes because they live in the dark,
+              Jackson proposes a crustal species with large eyes because they live in the dark,
               running a planetary defense of silver spheres, able to step outside human
               flicker-fusion with a local time-dilation field.
             </p>
@@ -114,8 +143,8 @@ function Home() {
             </Link>
           </div>
           <p className="mt-3 max-w-xl text-[15px] text-muted">
-            Skinwalker as ground infrastructure. Catalina as the public half of a Navy door.
-            Hudson Valley as the Type-1 billboard.
+            Skinwalker as ground infrastructure. Catalina as the public half of a Navy door. Hudson
+            Valley as the Type-1 billboard.
           </p>
           <div className="mt-10 grid gap-px overflow-hidden rounded-md border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
             {WATCH_SITES.map((site) => (

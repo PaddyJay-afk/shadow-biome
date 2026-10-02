@@ -17,6 +17,7 @@ import { Route as KeepawayRouteImport } from './routes/keepaway'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LocatorRouteImport } from './routes/locator'
 import { Route as MissingRouteImport } from './routes/missing'
+import { Route as SandsRouteImport } from './routes/sands'
 import { Route as StrobeRouteImport } from './routes/strobe'
 import { Route as TheoryRouteImport } from './routes/theory'
 import { Route as ValleeRouteImport } from './routes/vallee'
@@ -63,6 +64,11 @@ const MissingRoute = MissingRouteImport.update({
   path: '/missing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SandsRoute = SandsRouteImport.update({
+  id: '/sands',
+  path: '/sands',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StrobeRoute = StrobeRouteImport.update({
   id: '/strobe',
   path: '/strobe',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof LibraryRoute
   '/locator': typeof LocatorRoute
   '/missing': typeof MissingRoute
+  '/sands': typeof SandsRoute
   '/strobe': typeof StrobeRoute
   '/theory': typeof TheoryRoute
   '/vallee': typeof ValleeRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/library': typeof LibraryRoute
   '/locator': typeof LocatorRoute
   '/missing': typeof MissingRoute
+  '/sands': typeof SandsRoute
   '/strobe': typeof StrobeRoute
   '/theory': typeof TheoryRoute
   '/vallee': typeof ValleeRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/library': typeof LibraryRoute
   '/locator': typeof LocatorRoute
   '/missing': typeof MissingRoute
+  '/sands': typeof SandsRoute
   '/strobe': typeof StrobeRoute
   '/theory': typeof TheoryRoute
   '/vallee': typeof ValleeRoute
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/locator'
     | '/missing'
+    | '/sands'
     | '/strobe'
     | '/theory'
     | '/vallee'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/locator'
     | '/missing'
+    | '/sands'
     | '/strobe'
     | '/theory'
     | '/vallee'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/locator'
     | '/missing'
+    | '/sands'
     | '/strobe'
     | '/theory'
     | '/vallee'
@@ -192,6 +204,7 @@ export interface RootRouteChildren {
   LibraryRoute: typeof LibraryRoute
   LocatorRoute: typeof LocatorRoute
   MissingRoute: typeof MissingRoute
+  SandsRoute: typeof SandsRoute
   StrobeRoute: typeof StrobeRoute
   TheoryRoute: typeof TheoryRoute
   ValleeRoute: typeof ValleeRoute
@@ -257,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MissingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sands': {
+      id: '/sands'
+      path: '/sands'
+      fullPath: '/sands'
+      preLoaderRoute: typeof SandsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/strobe': {
       id: '/strobe'
       path: '/strobe'
@@ -304,6 +324,7 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryRoute: LibraryRoute,
   LocatorRoute: LocatorRoute,
   MissingRoute: MissingRoute,
+  SandsRoute: SandsRoute,
   StrobeRoute: StrobeRoute,
   TheoryRoute: TheoryRoute,
   ValleeRoute: ValleeRoute,
